@@ -1,0 +1,3059 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyPilot — AI-помощник для учёбы</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS (LIGHT & DARK THEMES)
+       ========================================================================== */
+    :root,
+    [data-theme="light"] {
+      --bg-page: #F7F8FC;
+      --bg-elevated: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-card-alt: #F1F4FB;
+      --bg-glass: rgba(255, 255, 255, 0.78);
+      --bg-nav-scrolled: rgba(247, 248, 252, 0.85);
+      --text-primary: #101425;
+      --text-secondary: #4A5268;
+      --text-muted: #76809B;
+      --accent-primary: #6366F1;
+      --accent-primary-hover: #4F46E5;
+      --accent-cyan: #22D3EE;
+      --accent-purple: #A78BFA;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --border-subtle: rgba(16, 20, 37, 0.08);
+      --border-strong: rgba(99, 102, 241, 0.24);
+      --shadow-card: 0 12px 32px -8px rgba(16, 20, 37, 0.06), 0 2px 6px -1px rgba(16, 20, 37, 0.04);
+      --shadow-hover: 0 20px 44px -12px rgba(99, 102, 241, 0.16), 0 4px 12px -2px rgba(16, 20, 37, 0.06);
+      --shadow-glow: 0 0 36px rgba(99, 102, 241, 0.25);
+      --bento-bg: linear-gradient(145deg, #FFFFFF 0%, #F5F7FF 100%);
+      --code-bg: #F0F3FA;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0B0F1A;
+      --bg-elevated: #131A29;
+      --bg-card: #131A29;
+      --bg-card-alt: #182032;
+      --bg-glass: rgba(19, 26, 41, 0.76);
+      --bg-nav-scrolled: rgba(11, 15, 26, 0.84);
+      --text-primary: #E8ECF6;
+      --text-secondary: #A3B0CC;
+      --text-muted: #6E7C99;
+      --accent-primary: #7C8CFF;
+      --accent-primary-hover: #93A0FF;
+      --accent-cyan: #22D3EE;
+      --accent-purple: #A78BFA;
+      --accent-emerald: #34D399;
+      --accent-amber: #FBBF24;
+      --accent-rose: #FB7185;
+      --border-subtle: rgba(232, 236, 246, 0.09);
+      --border-strong: rgba(124, 140, 255, 0.32);
+      --shadow-card: 0 16px 40px -10px rgba(0, 0, 0, 0.55);
+      --shadow-hover: 0 24px 52px -12px rgba(124, 140, 255, 0.22), 0 0 25px rgba(34, 211, 238, 0.08);
+      --shadow-glow: 0 0 44px rgba(124, 140, 255, 0.35);
+      --bento-bg: linear-gradient(145deg, #131A29 0%, #182032 100%);
+      --code-bg: #0E1422;
+    }
+
+    /* ==========================================================================
+       2. RESET & BASE LAYOUT (ZERO HORIZONTAL SCROLL 320px - 2560px)
+       ========================================================================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      width: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      width: 100%;
+      min-width: 320px;
+      transition: background-color 0.35s ease, color 0.35s ease;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Inter Tight', 'Inter', sans-serif;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+      border: none;
+      background: none;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    img, svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 40px);
+    }
+
+    /* ==========================================================================
+       3. TOP NAVIGATION BAR
+       ========================================================================== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      border-bottom: 1px solid transparent;
+    }
+
+    .navbar.scrolled {
+      background-color: var(--bg-nav-scrolled);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom-color: var(--border-subtle);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    /* When in top dark hero before scroll, ensure readable nav items */
+    .navbar:not(.scrolled) {
+      color: #F8FAFC;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.15rem, 2vw, 1.38rem);
+      letter-spacing: -0.03em;
+      flex-shrink: 0;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #6366F1 0%, #22D3EE 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.38);
+      flex-shrink: 0;
+    }
+
+    .brand-accent {
+      background: linear-gradient(90deg, #818CF8, #22D3EE);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: clamp(16px, 2.2vw, 32px);
+      list-style: none;
+    }
+
+    .nav-link {
+      font-size: 0.92rem;
+      font-weight: 600;
+      opacity: 0.85;
+      transition: opacity 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      opacity: 1;
+      color: var(--accent-cyan);
+    }
+
+    .navbar.scrolled .nav-link:hover {
+      color: var(--accent-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Pill Controls (Lang & Theme) */
+    .control-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(8px);
+    }
+
+    .navbar.scrolled .control-pill {
+      background: var(--bg-card-alt);
+      border-color: var(--border-subtle);
+    }
+
+    .pill-btn {
+      padding: 5px 8px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      opacity: 0.72;
+      transition: all 0.2s ease;
+    }
+
+    .pill-btn:hover {
+      opacity: 1;
+    }
+
+    .pill-btn.active {
+      opacity: 1;
+      background: var(--accent-primary);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 10px 18px;
+      border-radius: 12px;
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-ghost {
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.06);
+      color: inherit;
+    }
+
+    .navbar.scrolled .btn-ghost {
+      border-color: var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366F1 0%, #4F46E5 60%, #0891B2 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 22px -4px rgba(99, 102, 241, 0.55);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -4px rgba(99, 102, 241, 0.7);
+    }
+
+    .btn-secondary-hero {
+      background: rgba(255, 255, 255, 0.09);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(12px);
+    }
+
+    .btn-secondary-hero:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(34, 211, 238, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px 5px 6px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.18);
+      border: 1px solid rgba(124, 140, 255, 0.35);
+      font-size: 0.84rem;
+      font-weight: 700;
+      max-width: 180px;
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366F1, #22D3EE);
+      color: #FFFFFF;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Burger button */
+    .burger-btn {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .navbar.scrolled .burger-btn {
+      border-color: var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    /* Mobile Drawer */
+    .mobile-menu {
+      position: fixed;
+      top: 76px;
+      left: 0;
+      right: 0;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 20px clamp(16px, 4vw, 32px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      transform: translateY(-120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mobile-menu.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+    }
+
+    .mobile-nav-list a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      background: var(--bg-card-alt);
+    }
+
+    /* ==========================================================================
+       4. HERO SECTION (DARK GRADIENT + GLOW ORBS + GRID + PARTICLES)
+       ========================================================================== */
+    .hero {
+      position: relative;
+      background: radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+                  radial-gradient(circle at 85% 25%, rgba(34, 211, 238, 0.22) 0%, transparent 40%),
+                  radial-gradient(circle at 55% 80%, rgba(167, 139, 250, 0.22) 0%, transparent 45%),
+                  linear-gradient(180deg, #070A12 0%, #0D1326 65%, #11182E 100%);
+      color: #F8FAFC;
+      padding-top: clamp(112px, 14vw, 152px);
+      padding-bottom: clamp(64px, 9vw, 108px);
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Subtle Tech Grid Overlay */
+    .hero-grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 25%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 25%, transparent 80%);
+      pointer-events: none;
+    }
+
+    /* Glowing Ambient Orbs */
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(75px);
+      pointer-events: none;
+      opacity: 0.55;
+      animation: floatOrb 12s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      width: 340px;
+      height: 340px;
+      background: #6366F1;
+      top: -60px;
+      left: -80px;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: #22D3EE;
+      top: 18%;
+      right: -90px;
+      animation-delay: -4s;
+    }
+
+    .orb-3 {
+      width: 280px;
+      height: 280px;
+      background: #A78BFA;
+      bottom: -70px;
+      left: 38%;
+      animation-delay: -7s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(24px, -24px) scale(1.08); }
+    }
+
+    /* Floating Academic Mini-Badges (Decorative inside .wrap bounds) */
+    .hero-layout {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: clamp(28px, 4vw, 52px);
+      align-items: center;
+      width: 100%;
+    }
+
+    .hero-content {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .eyebrow-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.16);
+      border: 1px solid rgba(167, 139, 250, 0.35);
+      color: #C4B5FD;
+      font-size: clamp(0.74rem, 1.5vw, 0.84rem);
+      font-weight: 700;
+      max-width: 100%;
+    }
+
+    .eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22D3EE;
+      box-shadow: 0 0 10px #22D3EE;
+      flex-shrink: 0;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 4.8vw, 4.1rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #FFFFFF;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    /* Word-by-word reveal animation */
+    .word-reveal {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: wordFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      margin-right: 0.24em;
+    }
+
+    .word-reveal.gradient-word {
+      background: linear-gradient(95deg, #A78BFA 0%, #6366F1 45%, #22D3EE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes wordFadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 1.8vw, 1.24rem);
+      color: #CBD5E1;
+      max-width: 580px;
+      font-weight: 400;
+      line-height: 1.55;
+      overflow-wrap: break-word;
+    }
+
+    /* Mini Feature Badges */
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: 100%;
+    }
+
+    .mini-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #E2E8F0;
+    }
+
+    .mini-badge svg {
+      color: #22D3EE;
+      flex-shrink: 0;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      width: 100%;
+      padding-top: 4px;
+    }
+
+    .btn-lg {
+      padding: 14px 26px;
+      font-size: 0.98rem;
+      border-radius: 14px;
+    }
+
+    /* Animated Metrics Strip */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(10px, 2vw, 20px);
+      width: 100%;
+      padding-top: 18px;
+      margin-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .stat-box {
+      min-width: 0;
+    }
+
+    .stat-num {
+      font-family: 'Inter Tight', sans-serif;
+      font-size: clamp(1.25rem, 2.5vw, 1.85rem);
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+
+    .stat-num span.accent-plus {
+      color: #22D3EE;
+    }
+
+    .stat-label {
+      font-size: clamp(0.72rem, 1.2vw, 0.82rem);
+      color: #94A3B8;
+      line-height: 1.3;
+    }
+
+    /* ==========================================================================
+       5. HERO INTERACTIVE DEMO CARD (GLASSMORPHISM)
+       ========================================================================== */
+    .hero-demo-wrap {
+      position: relative;
+      min-width: 0;
+      width: 100%;
+      padding: 14px 0;
+    }
+
+    /* Decorative Floating Academic Cards & Particles */
+    .deco-float-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(19, 26, 45, 0.86);
+      border: 1px solid rgba(167, 139, 250, 0.35);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #F8FAFC;
+      animation: gentleBob 5s ease-in-out infinite alternate;
+    }
+
+    .deco-float-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .deco-float-row-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    @keyframes gentleBob {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-4px); }
+    }
+
+    .hero-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .particle-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(167, 139, 250, 0.45);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+      animation: floatOrb 9s ease-in-out infinite alternate;
+    }
+
+    .glass-demo-card {
+      position: relative;
+      width: 100%;
+      border-radius: 24px;
+      background: rgba(19, 26, 45, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow: 0 28px 60px -15px rgba(0, 0, 0, 0.65), 0 0 40px rgba(99, 102, 241, 0.22);
+      padding: clamp(16px, 2.5vw, 24px);
+      overflow: hidden;
+    }
+
+    .demo-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .file-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.22);
+      border: 1px solid rgba(124, 140, 255, 0.35);
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #E0E7FF;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Pipeline Stepper Inside Hero Card */
+    .demo-stepper {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 16px;
+      background: rgba(9, 13, 24, 0.65);
+      padding: 5px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .step-tab {
+      padding: 8px 6px;
+      border-radius: 10px;
+      font-size: clamp(0.68rem, 1.1vw, 0.76rem);
+      font-weight: 700;
+      color: #94A3B8;
+      text-align: center;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .step-tab.active {
+      background: linear-gradient(135deg, #6366F1, #0891B2);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+    }
+
+    .demo-stage-panel {
+      background: rgba(11, 15, 26, 0.68);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 235px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stage-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #22D3EE;
+    }
+
+    .stage-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+
+    .stage-body {
+      font-size: 0.84rem;
+      color: #CBD5E1;
+      line-height: 1.55;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stage-list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 0.8rem;
+    }
+
+    .stage-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.75rem;
+      color: #94A3B8;
+    }
+
+    /* ==========================================================================
+       6. SECTION COMMON STYLES & SCROLL ANIMATIONS
+       ========================================================================== */
+    .section {
+      padding: clamp(64px, 8vw, 112px) 0;
+      position: relative;
+    }
+
+    .section-alt {
+      background-color: var(--bg-card-alt);
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto clamp(40px, 5vw, 60px);
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid var(--border-strong);
+      color: var(--accent-primary);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 3.6vw, 2.75rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .section-desc {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: var(--text-secondary);
+    }
+
+    /* Staggered Scroll Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       7. BENTO GRID FEATURES (8 CARDS)
+       ========================================================================== */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .bento-card {
+      grid-column: span 3;
+      background: var(--bento-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .bento-card.span-6 {
+      grid-column: span 6;
+    }
+
+    .bento-card.span-4 {
+      grid-column: span 4;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--border-strong);
+    }
+
+    .bento-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid var(--border-strong);
+      color: var(--accent-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .bento-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .bento-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .bento-visual {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--code-bg);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tag-chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--accent-emerald);
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       8. HOW IT WORKS (3 STEPS)
+       ========================================================================== */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 28px 24px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .step-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-strong);
+    }
+
+    .step-num-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #6366F1, #22D3EE);
+      color: #FFFFFF;
+      font-family: 'Inter Tight', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    /* ==========================================================================
+       9. INTERACTIVE CABINET MOCKUP SECTION
+       ========================================================================== */
+    .cabinet-shell {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 28px;
+      box-shadow: var(--shadow-hover);
+      overflow: hidden;
+    }
+
+    .cabinet-topbar {
+      padding: 16px 24px;
+      background: var(--bg-card-alt);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cabinet-body {
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr) 300px;
+      gap: 0;
+    }
+
+    .cabinet-col {
+      padding: 22px;
+      min-width: 0;
+    }
+
+    .cabinet-col + .cabinet-col {
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .subj-btn {
+      width: 100%;
+      text-align: left;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .subj-btn:hover {
+      background: var(--bg-card-alt);
+      color: var(--text-primary);
+    }
+
+    .subj-btn.active {
+      background: var(--accent-primary);
+      color: #FFFFFF;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.32);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--code-bg);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6366F1, #10B981);
+      transition: width 0.4s ease;
+    }
+
+    .topic-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--bg-card-alt);
+      margin-bottom: 8px;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .topic-row:hover {
+      border-color: var(--border-strong);
+    }
+
+    .cabinet-actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .action-pill-btn {
+      padding: 9px 14px;
+      border-radius: 11px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--border-strong);
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--accent-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .action-pill-btn.active,
+    .action-pill-btn:hover {
+      background: var(--accent-primary);
+      color: #FFFFFF;
+    }
+
+    /* ==========================================================================
+       10. FAQ ACCORDION
+       ========================================================================== */
+    .faq-list {
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      overflow: hidden;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .faq-item.open {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-card);
+    }
+
+    .faq-trigger {
+      width: 100%;
+      padding: 20px 24px;
+      text-align: left;
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .faq-chevron {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--bg-card-alt);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .faq-item.open .faq-chevron {
+      transform: rotate(180deg);
+      background: var(--accent-primary);
+      color: #FFFFFF;
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.32s ease;
+    }
+
+    .faq-answer-inner {
+      padding: 0 24px 20px;
+      font-size: 0.94rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    /* ==========================================================================
+       11. CTA BANNER & FOOTER
+       ========================================================================== */
+    .cta-card {
+      position: relative;
+      border-radius: 30px;
+      background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.38) 0%, transparent 48%),
+                  radial-gradient(circle at 85% 80%, rgba(34, 211, 238, 0.28) 0%, transparent 45%),
+                  linear-gradient(135deg, #090D1A 0%, #131B36 100%);
+      color: #FFFFFF;
+      padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px);
+      text-align: center;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 28px 60px -15px rgba(11, 15, 26, 0.55);
+    }
+
+    .footer {
+      padding: 48px 0 36px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    .social-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .social-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .social-btn:hover {
+      color: #FFFFFF;
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+
+    /* ==========================================================================
+       12. AUTH MODAL (LOGIN / REGISTER / FORGOT PASSWORD)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(7, 10, 18, 0.72);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: 24px;
+      padding: clamp(22px, 4vw, 32px);
+      box-shadow: 0 28px 64px rgba(0, 0, 0, 0.45);
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-backdrop.open .auth-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg-card-alt);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .auth-tab {
+      padding: 9px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      border-radius: 9px;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .auth-tab.active {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-size: 0.92rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      padding: 6px;
+      color: var(--text-muted);
+    }
+
+    .auth-status {
+      padding: 10px 12px;
+      border-radius: 11px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .auth-status.error {
+      display: block;
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: var(--accent-rose);
+    }
+
+    .auth-status.success {
+      display: block;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: var(--accent-emerald);
+    }
+
+    /* ==========================================================================
+       13. RESPONSIVE BREAKPOINTS (320px - 2560px)
+       ========================================================================== */
+    @media (max-width: 1080px) {
+      .hero-layout {
+        grid-template-columns: 1fr;
+      }
+      .bento-card,
+      .bento-card.span-6,
+      .bento-card.span-4 {
+        grid-column: span 6;
+      }
+      .cabinet-body {
+        grid-template-columns: 1fr;
+      }
+      .cabinet-col + .cabinet-col {
+        border-left: none;
+        border-top: 1px solid var(--border-subtle);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .nav-links,
+      .nav-desktop-only {
+        display: none !important;
+      }
+      .burger-btn {
+        display: inline-flex;
+      }
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .bento-card,
+      .bento-card.span-6,
+      .bento-card.span-4 {
+        grid-column: span 12;
+      }
+      .hero-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .demo-stepper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .hero-cta-group .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================================================
+       FIXED NAVBAR
+       ======================================================================== -->
+  <header class="navbar" id="navbar">
+    <div class="wrap nav-inner">
+      <a href="#top" class="brand" aria-label="StudyPilot">
+        <span class="brand-icon" aria-hidden="true">
+          <!-- Inline SVG Compass / Rocket Icon -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+          </svg>
+        </span>
+        <span>Study<span class="brand-accent">Pilot</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link" data-i18n="nav_features">Возможности</a></li>
+        <li><a href="#how-it-works" class="nav-link" data-i18n="nav_how">Как работает</a></li>
+        <li><a href="#cabinet-demo" class="nav-link" data-i18n="nav_demo">Демо кабинета</a></li>
+        <li><a href="#faq" class="nav-link" data-i18n="nav_faq">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Language Switcher RU / EN -->
+        <div class="control-pill" role="group" aria-label="Language switcher">
+          <button type="button" class="pill-btn active" id="lang-ru" onclick="setLanguage('ru')">RU</button>
+          <button type="button" class="pill-btn" id="lang-en" onclick="setLanguage('en')">EN</button>
+        </div>
+
+        <!-- Theme Switcher: Light / Dark / System -->
+        <div class="control-pill" role="group" aria-label="Theme switcher">
+          <button type="button" class="pill-btn" id="theme-light" onclick="setThemeMode('light')" title="Light">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+          <button type="button" class="pill-btn" id="theme-dark" onclick="setThemeMode('dark')" title="Dark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+          <button type="button" class="pill-btn" id="theme-system" onclick="setThemeMode('system')" title="System">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+          </button>
+        </div>
+
+        <!-- Auth Action Buttons -->
+        <div id="nav-auth-guest" class="nav-desktop-only" style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn btn-ghost" onclick="openAuthModal('login')" data-i18n="nav_login">Войти</button>
+          <button type="button" class="btn btn-primary" onclick="openAuthModal('register')" data-i18n="nav_start">Начать бесплатно</button>
+        </div>
+
+        <div id="nav-auth-user" class="nav-desktop-only" style="display:none;align-items:center;gap:8px;">
+          <a href="#cabinet-demo" class="user-chip" title="Мой кабинет">
+            <span class="user-avatar" id="user-avatar-initials">SP</span>
+            <span id="user-display-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Мой кабинет</span>
+          </a>
+          <button type="button" class="btn btn-ghost" onclick="logoutUser()" data-i18n="nav_logout">Выйти</button>
+        </div>
+
+        <!-- Mobile Burger -->
+        <button type="button" class="burger-btn" id="burger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" x2="20" y1="7" y2="7"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="17" y2="17"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Dropdown Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <ul class="mobile-nav-list">
+      <li><a href="#features" onclick="closeMobileMenu()" data-i18n="nav_features">Возможности</a></li>
+      <li><a href="#how-it-works" onclick="closeMobileMenu()" data-i18n="nav_how">Как работает</a></li>
+      <li><a href="#cabinet-demo" onclick="closeMobileMenu()" data-i18n="nav_demo">Демо кабинета</a></li>
+      <li><a href="#faq" onclick="closeMobileMenu()" data-i18n="nav_faq">FAQ</a></li>
+    </ul>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost" style="flex:1;border-color:var(--border-strong);" onclick="closeMobileMenu();openAuthModal('login')" data-i18n="nav_login">Войти</button>
+      <button type="button" class="btn btn-primary" style="flex:1;" onclick="closeMobileMenu();openAuthModal('register')" data-i18n="nav_start">Начать бесплатно</button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       1. HERO SECTION
+       ======================================================================== -->
+  <section class="hero" id="top">
+    <div class="hero-grid-overlay" aria-hidden="true"></div>
+    <div class="hero-orb orb-1" aria-hidden="true"></div>
+    <div class="hero-orb orb-2" aria-hidden="true"></div>
+    <div class="hero-orb orb-3" aria-hidden="true"></div>
+    <div class="hero-particles" aria-hidden="true">
+      <span class="particle-dot" style="width:6px;height:6px;top:22%;left:12%;"></span>
+      <span class="particle-dot" style="width:5px;height:5px;top:68%;left:8%;animation-delay:-3s;"></span>
+      <span class="particle-dot" style="width:7px;height:7px;top:30%;right:14%;animation-delay:-5s;"></span>
+      <span class="particle-dot" style="width:5px;height:5px;top:76%;right:22%;animation-delay:-2s;"></span>
+    </div>
+
+    <div class="wrap hero-layout">
+      <!-- Left Column -->
+      <div class="hero-content">
+        <div class="eyebrow-pill">
+          <span class="eyebrow-dot"></span>
+          <span data-i18n="hero_eyebrow">StudyPilot AI • Образовательная платформа нового поколения</span>
+        </div>
+
+        <h1 class="hero-title" id="hero-animated-title" aria-label="Учись быстрее с AI"></h1>
+
+        <p class="hero-subtitle" data-i18n="hero_subtitle">
+          Загрузи лекцию — получи конспект, тест и план до экзамена. Без воды и выдуманных фактов: каждый ответ привязан к точному фрагменту твоего материала.
+        </p>
+
+        <!-- Small Badges -->
+        <div class="hero-badges">
+          <div class="mini-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span data-i18n="badge_1">Конспект за минуту</span>
+          </div>
+          <div class="mini-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span data-i18n="badge_2">Тест из 10 вопросов</span>
+          </div>
+          <div class="mini-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <span data-i18n="badge_3">План до экзамена</span>
+          </div>
+        </div>
+
+        <!-- Hero CTA Buttons -->
+        <div class="hero-cta-group">
+          <button type="button" class="btn btn-primary btn-lg" onclick="openAuthModal('register')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <span data-i18n="hero_btn_upload">Загрузить лекцию</span>
+          </button>
+          <a href="#cabinet-demo" class="btn btn-secondary-hero btn-lg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span data-i18n="hero_btn_demo">Посмотреть демо</span>
+          </a>
+        </div>
+
+        <!-- Animated Counters -->
+        <div class="hero-stats" id="hero-stats">
+          <div class="stat-box">
+            <div class="stat-num"><span class="counter-val" data-target="10000">0</span><span class="accent-plus">+</span></div>
+            <div class="stat-label" data-i18n="stat_1">конспектов создано</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num"><span class="counter-val" data-target="50000">0</span><span class="accent-plus">+</span></div>
+            <div class="stat-label" data-i18n="stat_2">вопросов с разбором</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num"><span class="counter-val" data-target="98">0</span><span class="accent-plus">%</span></div>
+            <div class="stat-label" data-i18n="stat_3">студентов готовятся быстрее</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Live Pipeline Demo Card -->
+      <div class="hero-demo-wrap">
+        <!-- Decorative Top Academic Note Cards (Book & Lightbulb) -->
+        <div class="deco-float-row">
+          <div class="deco-float-card">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.3"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <span data-i18n="deco_book">Заметка: 6 терминов выделено</span>
+          </div>
+          <div class="deco-float-card" style="animation-delay:-2.2s;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2.3"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            <span data-i18n="deco_bulb">AI: Объяснить проще</span>
+          </div>
+        </div>
+
+        <div class="glass-demo-card">
+          <div class="demo-top-bar">
+            <div class="window-dots" aria-hidden="true">
+              <span style="background:#FB7185;"></span>
+              <span style="background:#FBBF24;"></span>
+              <span style="background:#34D399;"></span>
+            </div>
+            <div class="file-pill">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>Hash_Tables_Lecture_04.pdf</span>
+            </div>
+          </div>
+
+          <div class="demo-stepper" role="tablist">
+            <button type="button" class="step-tab active" id="demo-tab-0" onclick="selectHeroDemoStage(0)" data-i18n="demo_step_0">1. Лекция</button>
+            <button type="button" class="step-tab" id="demo-tab-1" onclick="selectHeroDemoStage(1)" data-i18n="demo_step_1">2. Конспект</button>
+            <button type="button" class="step-tab" id="demo-tab-2" onclick="selectHeroDemoStage(2)" data-i18n="demo_step_2">3. Тест</button>
+            <button type="button" class="step-tab" id="demo-tab-3" onclick="selectHeroDemoStage(3)" data-i18n="demo_step_3">4. Карточки</button>
+          </div>
+
+          <div class="demo-stage-panel" id="hero-demo-panel">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- Decorative Bottom Academic Note Cards (Checkmark & Chart) -->
+        <div class="deco-float-row-bottom">
+          <div class="deco-float-card" style="animation-delay:-1.4s;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span data-i18n="deco_check">Тест: 9/10 верно</span>
+          </div>
+          <div class="deco-float-card" style="animation-delay:-3.1s;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.3"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            <span data-i18n="deco_chart">Прогресс: 40% → 78%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       2. FEATURES SECTION (BENTO GRID - 8 CARDS)
+       ======================================================================== -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
+          <span data-i18n="feat_tag">Все инструменты в одном месте</span>
+        </div>
+        <h2 class="section-title" data-i18n="feat_title">Создано для глубокого понимания, а не зубрёжки</h2>
+        <p class="section-desc" data-i18n="feat_desc">
+          Восемь взаимосвязанных модулей превращают хаотичные материалы семестра в чёткую систему подготовки.
+        </p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Card 1: Smart Notes -->
+        <article class="bento-card span-6 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f1_title">Умный конспект и Mind Map</h3>
+            <p class="bento-text" data-i18n="f1_desc">
+              Генерирует выжимку на 1 страницу, подробный разбор с подпунктами, список ключевых терминов, схему темы и кнопку «Объяснить проще» для любого сложного абзаца.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f1_vis">Краткий • Подробный • Схема темы</span>
+            <span class="tag-chip" data-i18n="f1_chip">Точные цитаты</span>
+          </div>
+        </article>
+
+        <!-- Card 2: Quizzes with Explanations -->
+        <article class="bento-card span-6 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f2_title">Тесты с объяснениями и цитатами</h3>
+            <p class="bento-text" data-i18n="f2_desc">
+              5, 10 или 20 вопросов: с вариантами ответа, «верно/неверно», короткий или открытый ответ. После каждого ответа показывается разбор и фрагмент исходной лекции.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f2_vis">Тренировка и Экзамен с таймером</span>
+            <span class="tag-chip">5 / 10 / 20</span>
+          </div>
+        </article>
+
+        <!-- Card 3: Flashcards & Spaced Repetition -->
+        <article class="bento-card span-4 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect width="16" height="16" x="4" y="4" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f3_title">Флеш-карточки и интервалы</h3>
+            <p class="bento-text" data-i18n="f3_desc">
+              Отмечай «знаю», «почти знаю» или «не знаю». Алгоритм интервального повторения показывает сложные термины и формулы чаще.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f3_vis">Приоритет сложных карточек</span>
+            <span class="tag-chip">SM-2</span>
+          </div>
+        </article>
+
+        <!-- Card 4: Study Plan -->
+        <article class="bento-card span-4 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f4_title">План подготовки до экзамена</h3>
+            <p class="bento-text" data-i18n="f4_desc">
+              Чередует чтение конспекта, тесты и карточки, даёт больше времени на слабые темы и выделяет финальный день для формул и ошибок.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f4_vis">Режим «Экзамен через 7 дней»</span>
+            <span class="tag-chip" data-i18n="f4_chip">Интенсив</span>
+          </div>
+        </article>
+
+        <!-- Card 5: Mistake Notebook -->
+        <article class="bento-card span-4 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M3.6 15.4 10.3 4a2 2 0 0 1 3.4 0l6.7 11.4A2 2 0 0 1 18.7 18H5.3a2 2 0 0 1-1.7-2.6z"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f5_title">Ошибочная тетрадь</h3>
+            <p class="bento-text" data-i18n="f5_desc">
+              Все неверные ответы из тестов автоматически сохраняются в отдельный раздел с объяснением и цитатой для повторной отработки.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f5_vis">Автосохранение промахов</span>
+            <span class="tag-chip" data-i18n="f5_chip">Разбор</span>
+          </div>
+        </article>
+
+        <!-- Card 6: Progress Tracker -->
+        <article class="bento-card span-4 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f6_title">Трекер прогресса и слабые темы</h3>
+            <p class="bento-text" data-i18n="f6_desc">
+              Наглядная динамика: «В понедельник ты знал 40%, сегодня — 78%». Серия учебных дней и достижения за регулярность.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f6_vis">График по дням и серия</span>
+            <span class="tag-chip">+38%</span>
+          </div>
+        </article>
+
+        <!-- Card 7: AI Tutor -->
+        <article class="bento-card span-4 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f7_title">AI-репетитор строго по лекции</h3>
+            <p class="bento-text" data-i18n="f7_desc">
+              Отвечает на вопросы («Дай пример», «Сравни понятия», «Какие формулы важны?») строго по тексту лекции без выдумок.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f7_vis">Zero Hallucination</span>
+            <span class="tag-chip">100% Grounded</span>
+          </div>
+        </article>
+
+        <!-- Card 8: Subject Storage -->
+        <article class="bento-card span-4 reveal">
+          <div>
+            <div class="bento-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3 class="bento-title" style="margin-top:14px;" data-i18n="f8_title">Хранение по предметам</h3>
+            <p class="bento-text" data-i18n="f8_desc">
+              Удобный порядок в учёбе: все загруженные PDF, DOCX, PPTX и текстовые лекции разложены по предметам, семестрам и модулям.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <span data-i18n="f8_vis">Предмет → Семестр → Модуль</span>
+            <span class="tag-chip">PDF / DOCX / PPTX</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       3. HOW IT WORKS (3 STEPS)
+       ======================================================================== -->
+  <section class="section section-alt" id="how-it-works">
+    <div class="wrap">
+      <div class="section-header reveal">
+        <div class="section-tag" data-i18n="how_tag">Простой процесс за 3 шага</div>
+        <h2 class="section-title" data-i18n="how_title">Как работает StudyPilot</h2>
+        <p class="section-desc" data-i18n="how_desc">
+          От сырого файла лекции до полной уверенности перед экзаменом — меньше чем за 60 секунд.
+        </p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <div class="step-num-badge">01</div>
+          <h3 class="bento-title" data-i18n="step1_title">Загрузи PDF или вставь текст</h3>
+          <p class="bento-text" data-i18n="step1_desc">
+            Выбери файл лекции (PDF, DOCX, PPTX) или просто скопируй текст конспекта. Система мгновенно определит предмет, тему и ключевые понятия.
+          </p>
+        </div>
+
+        <div class="step-card reveal">
+          <div class="step-num-badge">02</div>
+          <h3 class="bento-title" data-i18n="step2_title">AI создаёт конспект, тест и карточки</h3>
+          <p class="bento-text" data-i18n="step2_desc">
+            Получи краткую выжимку на 1 страницу, подробный разбор со схемой темы, проверочный тест из 10 вопросов с цитатами и колоду карточек.
+          </p>
+        </div>
+
+        <div class="step-card reveal">
+          <div class="step-num-badge">03</div>
+          <h3 class="bento-title" data-i18n="step3_title">Повторяй слабые темы и готовься к экзамену</h3>
+          <p class="bento-text" data-i18n="step3_desc">
+            Закрывай пробелы в «Ошибочной тетради», следуй персональному расписанию до даты экзамена и отслеживай рост знаний каждый день.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       4. INTERACTIVE INTERFACE DEMO (PERSONAL CABINET MOCKUP)
+       ======================================================================== -->
+  <section class="section" id="cabinet-demo">
+    <div class="wrap">
+      <div class="section-header reveal">
+        <div class="section-tag" data-i18n="cab_tag">Интерактивный макет</div>
+        <h2 class="section-title" data-i18n="cab_title">Личный кабинет студента</h2>
+        <p class="section-desc" data-i18n="cab_desc">
+          Попробуй прямо здесь: переключай предметы, отмечай изученные темы и тестируй быстрые действия.
+        </p>
+      </div>
+
+      <div class="cabinet-shell reveal">
+        <div class="cabinet-topbar">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="brand-icon" style="width:30px;height:30px;border-radius:8px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </span>
+            <strong style="font-size:0.95rem;" data-i18n="cab_header_title">Рабочее пространство StudyPilot</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="tag-chip" id="cab-exam-badge">Экзамен через 7 дней • Интенсив</span>
+          </div>
+        </div>
+
+        <div class="cabinet-body">
+          <!-- Column 1: Subjects & Nearest Exam -->
+          <div class="cabinet-col">
+            <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;" data-i18n="cab_col_subjects">
+              Мои предметы
+            </div>
+            <button type="button" class="subj-btn active" id="subj-btn-0" onclick="selectCabinetSubject(0)">
+              <span data-i18n="subj_0">Алгоритмы и структуры</span>
+              <span>78%</span>
+            </button>
+            <button type="button" class="subj-btn" id="subj-btn-1" onclick="selectCabinetSubject(1)">
+              <span data-i18n="subj_1">Молекулярная биология</span>
+              <span>92%</span>
+            </button>
+            <button type="button" class="subj-btn" id="subj-btn-2" onclick="selectCabinetSubject(2)">
+              <span data-i18n="subj_2">Макроэкономика</span>
+              <span>64%</span>
+            </button>
+
+            <div style="margin-top:20px;padding:14px;border-radius:16px;background:var(--bg-card-alt);border:1px solid var(--border-subtle);">
+              <div style="font-size:0.74rem;font-weight:700;color:var(--accent-primary);" data-i18n="cab_nearest_exam">Ближайший экзамен</div>
+              <div style="font-weight:800;font-size:0.95rem;margin-top:4px;" id="cab-exam-subject">Алгоритмы и структуры</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;" id="cab-exam-date">23 ноября • Осталось 7 дней</div>
+            </div>
+          </div>
+
+          <!-- Column 2: Topic Progress & Interactive Action Workspace -->
+          <div class="cabinet-col">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+              <strong style="font-size:1rem;" id="cab-main-title">Прогресс по темам</strong>
+              <span style="font-size:0.86rem;font-weight:800;color:var(--accent-emerald);" id="cab-progress-pct">78% изучено</span>
+            </div>
+            <div class="progress-track" style="margin-bottom:16px;">
+              <div class="progress-fill" id="cab-progress-bar" style="width:78%;"></div>
+            </div>
+
+            <div id="cab-topics-list">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Interactive Preview Output for the 3 Bottom Buttons -->
+            <div id="cab-action-preview" style="margin-top:14px;padding:14px;border-radius:14px;background:var(--code-bg);border:1px solid var(--border-strong);font-size:0.84rem;">
+              <!-- Populated by JS -->
+            </div>
+
+            <div class="cabinet-actions-bar">
+              <button type="button" class="action-pill-btn active" id="cab-act-quiz" onclick="setCabinetAction('quiz')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span data-i18n="btn_make_quiz">Сделать тест</span>
+              </button>
+              <button type="button" class="action-pill-btn" id="cab-act-cards" onclick="setCabinetAction('cards')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="16" height="16" x="4" y="4" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+                <span data-i18n="btn_make_cards">Создать карточки</span>
+              </button>
+              <button type="button" class="action-pill-btn" id="cab-act-plan" onclick="setCabinetAction('plan')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span data-i18n="btn_add_plan">Добавить в план</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Column 3: Weak Topics & Test Results -->
+          <div class="cabinet-col">
+            <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;" data-i18n="cab_weak_title">
+              Слабые темы (Ошибочная тетрадь)
+            </div>
+            <div id="cab-weak-box" style="padding:12px;border-radius:14px;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.28);font-size:0.82rem;margin-bottom:18px;">
+              <!-- Populated by JS -->
+            </div>
+
+            <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;" data-i18n="cab_results_title">
+              Последние результаты тестов
+            </div>
+            <div id="cab-results-list" style="display:flex;flex-direction:column;gap:8px;font-size:0.82rem;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       5. FAQ SECTION
+       ======================================================================== -->
+  <section class="section section-alt" id="faq">
+    <div class="wrap">
+      <div class="section-header reveal">
+        <div class="section-tag" data-i18n="faq_tag">Ответы на вопросы</div>
+        <h2 class="section-title" data-i18n="faq_title">Часто задаваемые вопросы</h2>
+        <p class="section-desc" data-i18n="faq_desc">
+          Всё, что нужно знать о работе с учебными материалами в StudyPilot.
+        </p>
+      </div>
+
+      <div class="faq-list reveal" id="faq-container">
+        <!-- Populated by JS for clean bilingual support -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       6. CTA SECTION
+       ======================================================================== -->
+  <section class="section">
+    <div class="wrap">
+      <div class="cta-card reveal">
+        <div class="eyebrow-pill" style="margin:0 auto 16px;">
+          <span class="eyebrow-dot"></span>
+          <span data-i18n="cta_badge">Загрузи первую лекцию прямо сейчас</span>
+        </div>
+        <h2 class="section-title" style="color:#FFFFFF;max-width:680px;margin:0 auto 14px;" data-i18n="cta_title">
+          Подготовься к экзамену без хаоса
+        </h2>
+        <p style="color:#CBD5E1;max-width:560px;margin:0 auto 28px;font-size:1.05rem;" data-i18n="cta_desc">
+          Забудь про бессонные ночи перед сессией. Получи чёткий конспект, проверь себя тестом и следуй понятному плану по дням.
+        </p>
+        <button type="button" class="btn btn-primary btn-lg" onclick="openAuthModal('register')">
+          <span data-i18n="cta_btn">Создать аккаунт</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="5" x2="19" y1="12" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       7. FOOTER
+       ======================================================================== -->
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div>
+        <a href="#top" class="brand">
+          <span class="brand-icon" style="width:32px;height:32px;border-radius:9px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+          </span>
+          <span>Study<span class="brand-accent">Pilot</span></span>
+        </a>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:6px;" data-i18n="footer_copy">
+          © 2026 StudyPilot AI. Личный помощник для учёбы и подготовки к экзаменам.
+        </p>
+      </div>
+
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="#features" data-i18n="nav_features">Возможности</a>
+        <a href="#how-it-works" data-i18n="nav_how">Как работает</a>
+        <a href="#faq" data-i18n="nav_faq">FAQ</a>
+        <a href="#top" onclick="event.preventDefault();openAuthModal('login')" data-i18n="nav_login">Войти</a>
+      </nav>
+
+      <div class="social-row">
+        <a href="#top" class="social-btn" aria-label="Telegram">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        </a>
+        <a href="#top" class="social-btn" aria-label="GitHub">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        </a>
+        <a href="#top" class="social-btn" aria-label="X">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       AUTH MODAL (LOGIN / REGISTER / FORGOT PASSWORD)
+       ======================================================================== -->
+  <div class="modal-backdrop" id="auth-modal" onclick="if(event.target===this) closeAuthModal()">
+    <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="font-size:1.25rem;font-weight:800;" id="auth-modal-title">Добро пожаловать в StudyPilot</h3>
+        <button type="button" onclick="closeAuthModal()" style="padding:6px;color:var(--text-muted);" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="auth-tabs" id="auth-tabs-bar">
+        <button type="button" class="auth-tab active" id="tab-login-btn" onclick="switchAuthMode('login')" data-i18n="auth_tab_login">Вход</button>
+        <button type="button" class="auth-tab" id="tab-register-btn" onclick="switchAuthMode('register')" data-i18n="auth_tab_register">Регистрация</button>
+      </div>
+
+      <div id="auth-status-box" class="auth-status"></div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" novalidate>
+        <!-- Name field (Register only) -->
+        <div class="form-group" id="field-name-wrap" style="display:none;">
+          <label class="form-label" for="auth-name" data-i18n="auth_label_name">Ваше имя</label>
+          <input type="text" id="auth-name" class="form-input" placeholder="Александр" />
+        </div>
+
+        <!-- Email or Login -->
+        <div class="form-group">
+          <label class="form-label" for="auth-email" id="label-email-field" data-i18n="auth_label_email">Email или логин</label>
+          <input type="text" id="auth-email" class="form-input" placeholder="student@university.edu" />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group" id="field-password-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;" for="auth-password" data-i18n="auth_label_password">Пароль</label>
+            <button type="button" onclick="switchAuthMode('forgot')" style="font-size:0.76rem;font-weight:700;color:var(--accent-primary);" id="forgot-link-btn" data-i18n="auth_forgot_link">Забыли пароль?</button>
+          </div>
+          <div class="input-wrap">
+            <input type="password" id="auth-password" class="form-input" style="padding-right:42px;" placeholder="••••••••" />
+            <button type="button" class="pw-toggle" onclick="togglePasswordVisibility()" aria-label="Show password">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:13px;margin-top:6px;" id="auth-submit-btn">
+          <span id="auth-submit-text">Войти в аккаунт</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       EMBEDDED JAVASCRIPT (I18N, THEME, DEMO ANIMATION, CABINET, AUTH)
+       ======================================================================== -->
+  <script>
+    /* ------------------------------------------------------------------------
+       1. BILINGUAL DICTIONARY (RU / EN)
+       ------------------------------------------------------------------------ */
+    const I18N = {
+      ru: {
+        nav_features: 'Возможности',
+        nav_how: 'Как работает',
+        nav_demo: 'Демо кабинета',
+        nav_faq: 'FAQ',
+        nav_login: 'Войти',
+        nav_start: 'Начать бесплатно',
+        nav_logout: 'Выйти',
+        nav_cabinet: 'Мой кабинет',
+        hero_eyebrow: 'StudyPilot AI • Образовательная платформа нового поколения',
+        hero_title_words: ['Учись', 'быстрее', 'с', 'AI'],
+        hero_subtitle: 'Загрузи лекцию — получи конспект, тест и план до экзамена. Без воды и выдуманных фактов: каждый ответ привязан к точному фрагменту твоего материала.',
+        badge_1: 'Конспект за минуту',
+        badge_2: 'Тест из 10 вопросов',
+        badge_3: 'План до экзамена',
+        hero_btn_upload: 'Загрузить лекцию',
+        hero_btn_demo: 'Посмотреть демо',
+        stat_1: 'конспектов создано',
+        stat_2: 'вопросов с разбором',
+        stat_3: 'студентов готовятся быстрее',
+        demo_step_0: '1. Лекция',
+        demo_step_1: '2. Конспект',
+        demo_step_2: '3. Тест',
+        demo_step_3: '4. Карточки',
+        deco_book: 'Заметка: 6 терминов выделено',
+        deco_bulb: 'AI: Объяснить проще',
+        deco_check: 'Тест: 9/10 верно',
+        deco_chart: 'Прогресс: 40% → 78%',
+        feat_tag: 'Все инструменты в одном месте',
+        feat_title: 'Создано для глубокого понимания, а не зубрёжки',
+        feat_desc: 'Восемь взаимосвязанных модулей превращают хаотичные материалы семестра в чёткую систему подготовки.',
+        f1_title: 'Умный конспект и Mind Map',
+        f1_desc: 'Генерирует выжимку на 1 страницу, подробный разбор с подпунктами, список ключевых терминов, схему темы и кнопку «Объяснить проще» для любого сложного абзаца.',
+        f1_vis: 'Краткий • Подробный • Схема темы',
+        f1_chip: 'Точные цитаты',
+        f2_title: 'Тесты с объяснениями и цитатами',
+        f2_desc: '5, 10 или 20 вопросов: с вариантами ответа, «верно/неверно», короткий или открытый ответ. После каждого ответа показывается разбор и фрагмент исходной лекции.',
+        f2_vis: 'Тренировка и Экзамен с таймером',
+        f3_title: 'Флеш-карточки и интервалы',
+        f3_desc: 'Отмечай «знаю», «почти знаю» или «не знаю». Алгоритм интервального повторения показывает сложные термины и формулы чаще.',
+        f3_vis: 'Приоритет сложных карточек',
+        f4_title: 'План подготовки до экзамена',
+        f4_desc: 'Чередует чтение конспекта, тесты и карточки, даёт больше времени на слабые темы и выделяет финальный день для формул и ошибок.',
+        f4_vis: 'Режим «Экзамен через 7 дней»',
+        f4_chip: 'Интенсив',
+        f5_title: 'Ошибочная тетрадь',
+        f5_desc: 'Все неверные ответы из тестов автоматически сохраняются в отдельный раздел с объяснением и цитатой для повторной отработки.',
+        f5_vis: 'Автосохранение промахов',
+        f5_chip: 'Разбор',
+        f6_title: 'Трекер прогресса и слабые темы',
+        f6_desc: 'Наглядная динамика: «В понедельник ты знал 40%, сегодня — 78%». Серия учебных дней и достижения за регулярность.',
+        f6_vis: 'График по дням и серия',
+        f7_title: 'AI-репетитор строго по лекции',
+        f7_desc: 'Отвечает на вопросы («Дай пример», «Сравни понятия», «Какие формулы важны?») строго по тексту лекции без выдумок.',
+        f7_vis: 'Без галлюцинаций',
+        f8_title: 'Хранение по предметам',
+        f8_desc: 'Удобный порядок в учёбе: все загруженные PDF, DOCX, PPTX и текстовые лекции разложены по предметам, семестрам и модулям.',
+        f8_vis: 'Предмет → Семестр → Модуль',
+        how_tag: 'Простой процесс за 3 шага',
+        how_title: 'Как работает StudyPilot',
+        how_desc: 'От сырого файла лекции до полной уверенности перед экзаменом — меньше чем за 60 секунд.',
+        step1_title: 'Загрузи PDF или вставь текст',
+        step1_desc: 'Выбери файл лекции (PDF, DOCX, PPTX) или просто скопируй текст конспекта. Система мгновенно определит предмет, тему и ключевые понятия.',
+        step2_title: 'AI создаёт конспект, тест и карточки',
+        step2_desc: 'Получи краткую выжимку на 1 страницу, подробный разбор со схемой темы, проверочный тест из 10 вопросов с цитатами и колоду карточек.',
+        step3_title: 'Повторяй слабые темы и готовься к экзамену',
+        step3_desc: 'Закрывай пробелы в «Ошибочной тетради», следуй персональному расписанию до даты экзамена и отслеживай рост знаний каждый день.',
+        cab_tag: 'Интерактивный макет',
+        cab_title: 'Личный кабинет студента',
+        cab_desc: 'Попробуй прямо здесь: переключай предметы, отмечай изученные темы и тестируй быстрые действия.',
+        cab_header_title: 'Рабочее пространство StudyPilot',
+        cab_col_subjects: 'Мои предметы',
+        subj_0: 'Алгоритмы и структуры',
+        subj_1: 'Молекулярная биология',
+        subj_2: 'Макроэкономика',
+        cab_nearest_exam: 'Ближайший экзамен',
+        cab_weak_title: 'Слабые темы (Ошибочная тетрадь)',
+        cab_results_title: 'Последние результаты тестов',
+        btn_make_quiz: 'Сделать тест',
+        btn_make_cards: 'Создать карточки',
+        btn_add_plan: 'Добавить в план',
+        faq_tag: 'Ответы на вопросы',
+        faq_title: 'Часто задаваемые вопросы',
+        faq_desc: 'Всё, что нужно знать о работе с учебными материалами в StudyPilot.',
+        cta_badge: 'Загрузи первую лекцию прямо сейчас',
+        cta_title: 'Подготовься к экзамену без хаоса',
+        cta_desc: 'Забудь про бессонные ночи перед сессией. Получи чёткий конспект, проверь себя тестом и следуй понятному плану по дням.',
+        cta_btn: 'Создать аккаунт',
+        footer_copy: '© 2026 StudyPilot AI. Личный помощник для учёбы и подготовки к экзаменам.',
+        auth_welcome: 'Добро пожаловать в StudyPilot',
+        auth_tab_login: 'Вход',
+        auth_tab_register: 'Регистрация',
+        auth_label_name: 'Ваше имя',
+        auth_label_email: 'Email или логин',
+        auth_label_password: 'Пароль',
+        auth_forgot_link: 'Забыли пароль?',
+        auth_btn_login: 'Войти в аккаунт',
+        auth_btn_register: 'Создать аккаунт',
+        auth_btn_forgot: 'Отправить ссылку восстановления',
+        auth_err_empty: 'Пожалуйста, заполните все обязательные поля.',
+        auth_err_email: 'Введите корректный email или логин (минимум 3 символа).',
+        auth_err_pw: 'Пароль должен содержать минимум 6 символов.',
+        auth_msg_loading: 'Проверяем данные...',
+        auth_msg_success_login: 'Вход выполнен! Перенаправляем в ваш кабинет...',
+        auth_msg_success_reg: 'Аккаунт успешно создан! Добро пожаловать.',
+        auth_msg_reset: 'Инструкция по сбросу пароля отправлена на указанный адрес.'
+      },
+      en: {
+        nav_features: 'Features',
+        nav_how: 'How it works',
+        nav_demo: 'Dashboard Demo',
+        nav_faq: 'FAQ',
+        nav_login: 'Sign in',
+        nav_start: 'Start for free',
+        nav_logout: 'Log out',
+        nav_cabinet: 'My Dashboard',
+        hero_eyebrow: 'StudyPilot AI • Next-Gen Academic Learning Copilot',
+        hero_title_words: ['Learn', 'faster', 'with', 'AI'],
+        hero_subtitle: 'Upload a lecture — get notes, a quiz, and an exam plan. Strictly grounded in your lecture material with exact source quotes.',
+        badge_1: 'Notes in 1 minute',
+        badge_2: '10-question quiz',
+        badge_3: 'Exam study plan',
+        hero_btn_upload: 'Upload a lecture',
+        hero_btn_demo: 'Watch live demo',
+        stat_1: 'smart notes created',
+        stat_2: 'quiz questions explained',
+        stat_3: 'students prepare faster',
+        demo_step_0: '1. Lecture',
+        demo_step_1: '2. Notes',
+        demo_step_2: '3. Quiz',
+        demo_step_3: '4. Flashcards',
+        deco_book: 'Note: 6 key terms extracted',
+        deco_bulb: 'AI: Explain simpler',
+        deco_check: 'Quiz: 9/10 correct',
+        deco_chart: 'Growth: 40% → 78%',
+        feat_tag: 'All study tools in one workspace',
+        feat_title: 'Built for deep comprehension, not rote cramming',
+        feat_desc: 'Eight connected modules transform scattered semester files into a structured exam preparation pipeline.',
+        f1_title: 'Smart Notes & Mind Map',
+        f1_desc: 'Generates a 1-page summary, detailed structured notes, key terms list, visual topic diagram, and an “Explain Simpler” button for complex paragraphs.',
+        f1_vis: '1-Page • Detailed • Mind Map',
+        f1_chip: 'Exact Quotes',
+        f2_title: 'Quizzes with Source Citations',
+        f2_desc: '5, 10, or 20 questions: multiple choice, true/false, short answer, or open-ended. Every answer displays an explanation and exact lecture quote.',
+        f2_vis: 'Practice & Timed Exam Modes',
+        f3_title: 'Flashcards & Spaced Repetition',
+        f3_desc: 'Mark cards as “Know”, “Almost”, or “Don’t know”. Our interval algorithm repeats missed concepts and formulas more frequently.',
+        f3_vis: 'Error-prioritized queue',
+        f4_title: 'Exam Preparation Plan',
+        f4_desc: 'Alternates reading notes, quizzes, and flashcards, allocates extra time to weak topics, and reserves the final day for formulas and mistakes.',
+        f4_vis: '“Exam in 7 Days” Intensive Mode',
+        f4_chip: 'Intensive',
+        f5_title: 'Mistake Notebook',
+        f5_desc: 'Every wrong quiz answer is automatically saved to your personal Mistake Notebook with source quotes for targeted review.',
+        f5_vis: 'Auto-captured weak spots',
+        f5_chip: 'Review',
+        f6_title: 'Progress Tracker & Weak Topics',
+        f6_desc: 'Clear daily growth: “On Monday you knew 40%, today — 78%.” Track study streaks, mastered topics, and unlock achievements.',
+        f6_vis: 'Daily growth chart & streak',
+        f7_title: 'Grounded Lecture AI Tutor',
+        f7_desc: 'Ask “Give an example”, “Compare concepts”, or “Which formulas matter?” Answers strictly from your uploaded lecture.',
+        f7_vis: 'Zero Hallucination',
+        f8_title: 'Organized by Subjects',
+        f8_desc: 'Keep every PDF, DOCX, PPTX, and text lecture neatly structured by subject, semester, and module.',
+        f8_vis: 'Subject → Semester → Module',
+        how_tag: 'Simple 3-step workflow',
+        how_title: 'How StudyPilot Works',
+        how_desc: 'Go from a raw lecture document to complete exam readiness in under 60 seconds.',
+        step1_title: 'Upload PDF or paste text',
+        step1_desc: 'Select your lecture file (PDF, DOCX, PPTX) or paste raw notes. StudyPilot automatically detects the subject, topic, and core terms.',
+        step2_title: 'AI builds notes, quiz & flashcards',
+        step2_desc: 'Get a 1-page summary, detailed breakdown with a mind map, a 10-question grounded quiz, and spaced-repetition flashcards.',
+        step3_title: 'Master weak topics before the exam',
+        step3_desc: 'Clear your Mistake Notebook, follow your daily schedule up to exam day, and watch your mastery score climb.',
+        cab_tag: 'Interactive Preview',
+        cab_title: 'Student Personal Dashboard',
+        cab_desc: 'Try it live below: switch subjects, check off learned topics, and trigger instant study actions.',
+        cab_header_title: 'StudyPilot Student Workspace',
+        cab_col_subjects: 'My Subjects',
+        subj_0: 'Algorithms & Data Structures',
+        subj_1: 'Molecular Biology',
+        subj_2: 'Macroeconomics',
+        cab_nearest_exam: 'Upcoming Exam',
+        cab_weak_title: 'Weak Topics (Mistake Notebook)',
+        cab_results_title: 'Recent Quiz Scores',
+        btn_make_quiz: 'Take a Quiz',
+        btn_make_cards: 'Create Flashcards',
+        btn_add_plan: 'Add to Plan',
+        faq_tag: 'Got Questions?',
+        faq_title: 'Frequently Asked Questions',
+        faq_desc: 'Everything you need to know about studying with StudyPilot.',
+        cta_badge: 'Upload your first lecture now',
+        cta_title: 'Prepare for your exam without chaos',
+        cta_desc: 'Skip the all-nighter panic. Get structured notes, test your knowledge, and follow a clear daily plan.',
+        cta_btn: 'Create an account',
+        footer_copy: '© 2026 StudyPilot AI. Personal AI study assistant for students.',
+        auth_welcome: 'Welcome to StudyPilot',
+        auth_tab_login: 'Sign In',
+        auth_tab_register: 'Sign Up',
+        auth_label_name: 'Your Name',
+        auth_label_email: 'Email or Username',
+        auth_label_password: 'Password',
+        auth_forgot_link: 'Forgot password?',
+        auth_btn_login: 'Sign in to account',
+        auth_btn_register: 'Create free account',
+        auth_btn_forgot: 'Send reset link',
+        auth_err_empty: 'Please fill in all required fields.',
+        auth_err_email: 'Please enter a valid email or username (at least 3 characters).',
+        auth_err_pw: 'Password must be at least 6 characters long.',
+        auth_msg_loading: 'Verifying credentials...',
+        auth_msg_success_login: 'Signed in! Redirecting to your workspace...',
+        auth_msg_success_reg: 'Account created! Welcome aboard.',
+        auth_msg_reset: 'Password recovery instructions have been sent to your email.'
+      }
+    };
+
+    const HERO_DEMO_STAGES = {
+      ru: [
+        {
+          badge: 'Исходный фрагмент лекции • PDF',
+          title: 'Хеш-таблицы и разрешение коллизий',
+          items: [
+            '«Хеш-таблица обеспечивает вставку, поиск и удаление пар ключ-значение за амортизированное время O(1).»',
+            '«Коллизия возникает при совпадении индексов h(K1) = h(K2). В худшем случае поиск в методе цепочек деградирует до O(N).»',
+            '«Коэффициент заполнения α = N / M; при α > 0.75 выполняется рехеширование с удвоением массива.»'
+          ],
+          footer: 'Авто-определение: Информатика • Семестр 2 • 6 ключевых терминов'
+        },
+        {
+          badge: 'Умный конспект на 1 страницу',
+          title: 'Ключевая выжимка + схема темы',
+          items: [
+            '✓ Сложность операций: O(1) в среднем, но O(N) при попадании всех ключей в одну корзину.',
+            '✓ Два метода борьбы с коллизиями: метод цепочек (списки) и открытая адресация (пробирование).',
+            '✓ Формула Load Factor: α = N / M (порог рехеширования — 0.75).'
+          ],
+          footer: 'Доступна кнопка «Объяснить проще» для каждого тезиса'
+        },
+        {
+          badge: 'Генератор теста • Вопрос 1 из 10',
+          title: 'До какой оценки деградирует поиск при коллизиях в худшем случае?',
+          items: [
+            'A) Всегда остаётся строго O(1)',
+            'B) Деградирует до O(N) — ВЕРНО ✓',
+            'Цитата из лекции: «В худшем случае, если все N элементов попадут в одну корзину, время поиска деградирует до O(N).»'
+          ],
+          footer: 'Неверные ответы автоматически сохраняются в «Ошибочную тетрадь»'
+        },
+        {
+          badge: 'Флеш-карточка • Интервальное повторение',
+          title: 'Лицевая сторона: Формула коэффициента заполнения (α)?',
+          items: [
+            'Обратная сторона: α = N / M (отношение числа элементов N к числу корзин M). При α > 0.75 — рехеширование.',
+            'Статус повторения: [Не знаю — повторить через 10 мин] • [Почти знаю] • [Знаю ✓]'
+          ],
+          footer: 'Карточки с ошибками показываются чаще'
+        }
+      ],
+      en: [
+        {
+          badge: 'Source Lecture Excerpt • PDF',
+          title: 'Hash Tables & Collision Resolution',
+          items: [
+            '“A hash table provides insertion, lookup, and deletion of key-value pairs in O(1) amortized time.”',
+            '“A collision occurs when h(K1) = h(K2). In the worst case with chaining, lookup degrades to O(N).”',
+            '“Load factor α = N / M; when α > 0.75, the table triggers rehashing by doubling array capacity.”'
+          ],
+          footer: 'Auto-detected: Computer Science • Semester 2 • 6 key terms'
+        },
+        {
+          badge: '1-Page Smart Summary',
+          title: 'Executive Notes + Topic Mind Map',
+          items: [
+            '✓ Time Complexity: O(1) average, degrades to O(N) if all keys collide into a single bucket.',
+            '✓ Collision Methods: Separate Chaining (linked lists) vs. Open Addressing (probing).',
+            '✓ Key Formula: Load Factor α = N / M (rehashing threshold at 0.75).'
+          ],
+          footer: 'Includes “Explain Simpler” toggle for every paragraph'
+        },
+        {
+          badge: 'Quiz Generator • Question 1 of 10',
+          title: 'What is the worst-case lookup complexity under severe collisions?',
+          items: [
+            'A) Always remains strictly O(1)',
+            'B) Degrades to O(N) — CORRECT ✓',
+            'Source quote: “In the worst case, if all N elements land in one bucket, lookup degrades to O(N).”'
+          ],
+          footer: 'Missed questions are automatically saved to your Mistake Notebook'
+        },
+        {
+          badge: 'Flashcard • Spaced Repetition',
+          title: 'Front: What is the Load Factor (α) formula and threshold?',
+          items: [
+            'Back: α = N / M (number of stored elements N divided by buckets M). Rehashing triggers at α > 0.75.',
+            'Rating: [Don’t know — repeat soon] • [Almost] • [Know ✓]'
+          ],
+          footer: 'Cards marked “Don’t know” repeat more frequently'
+        }
+      ]
+    };
+
+    const FAQ_DATA = {
+      ru: [
+        {
+          q: 'Какие файлы можно загружать в StudyPilot?',
+          a: 'Вы можете загружать текстовые документы PDF, файлы Word (DOCX), презентации PowerPoint (PPTX) или просто вставлять скопированный текст лекции вручную. Аудио и видео не требуются — система работает напрямую с учебным текстом.'
+        },
+        {
+          q: 'Как AI создаёт тест и откуда берёт ответы?',
+          a: 'Генератор тестов анализирует только загруженную вами лекцию. Вы выбираете 5, 10 или 20 вопросов, сложность и формат (варианты ответа, верно/неверно, короткий или открытый ответ). К каждому правильному ответу прикрепляется точная цитата из вашей лекции.'
+        },
+        {
+          q: 'Выдумывает ли нейросеть факты, которых не было в лекции?',
+          a: 'Нет. В StudyPilot действует правило строгого заземления (Zero Hallucination). Если вы спросите в чате о том, чего нет в загруженном материале, система честно ответит: «В предоставленной лекции этой информации нет».'
+        },
+        {
+          q: 'Как работает план подготовки и режим «Экзамен через 7 дней»?',
+          a: 'Вы указываете предмет, список тем, дату экзамена и сколько минут в день готовы заниматься. Система чередует конспекты, тесты и карточки, выделяет больше времени на сложные темы, а в последний день перед экзаменом оставляет только ключевые формулы, определения и разбор ошибок.'
+        },
+        {
+          q: 'Что такое «Ошибочная тетрадь»?',
+          a: 'Это специальный раздел, куда автоматически сохраняются все вопросы тестов, в которых вы допустили ошибку. Вы можете в любой момент открыть Ошибочную тетрадь, перечитать объяснение с цитатой из лекции и перерешать сложные вопросы.'
+        }
+      ],
+      en: [
+        {
+          q: 'Which file formats can I upload to StudyPilot?',
+          a: 'You can upload PDF documents, Word files (DOCX), PowerPoint slide decks (PPTX), or paste lecture text directly. StudyPilot processes your written academic materials immediately.'
+        },
+        {
+          q: 'How does the AI generate quizzes and verify answers?',
+          a: 'The quiz generator builds 5, 10, or 20 questions strictly from your uploaded lecture across four formats (multiple choice, true/false, short answer, open-ended). Every question includes an explanation and the exact quote from your source material.'
+        },
+        {
+          q: 'Does the AI ever invent facts outside my lecture?',
+          a: 'Never. StudyPilot enforces strict grounding. If you ask the AI tutor about something not covered in your uploaded text, it explicitly replies: “This information is not present in the provided lecture.”'
+        },
+        {
+          q: 'How do the Study Plan and “Exam in 7 Days” mode work?',
+          a: 'Enter your subject, exam date, daily study minutes, and weak topics. StudyPilot schedules balanced blocks of notes, quizzes, and flashcards, prioritizes weak areas, and dedicates the final day before the exam exclusively to formulas, definitions, and mistake review.'
+        },
+        {
+          q: 'What is the Mistake Notebook?',
+          a: 'Every time you miss a question in a practice or timed quiz, StudyPilot automatically logs it into your Mistake Notebook alongside the correct answer, explanation, and source lecture quote so you can master weak spots.'
+        }
+      ]
+    };
+
+    const CABINET_DATA = {
+      ru: [
+        {
+          subject: 'Алгоритмы и структуры',
+          examDate: '23 ноября • Осталось 7 дней',
+          topics: [
+            { title: 'Хеш-таблицы и функции хеширования', done: true },
+            { title: 'Метод цепочек и открытая адресация', done: true },
+            { title: 'Коэффициент заполнения α = N / M и рехеширование', done: true },
+            { title: 'Амортизированная сложность O(1) vs O(N)', done: false }
+          ],
+          weak: 'Слабая тема: «Амортизированная сложность O(1) vs O(N)» — 1 ошибка в Ошибочной тетради.',
+          results: ['Хеш-таблицы (Экзамен): 9/10 (90%)', 'Деревья поиска (Тренировка): 8/10 (80%)'],
+          previews: {
+            quiz: 'Тест (10 вопросов): «До какой оценки деградирует поиск в методе цепочек при попадании всех N элементов в одну корзину?» → Ответ по лекции: O(N).',
+            cards: 'Карточка #1: «Формула коэффициента заполнения хеш-таблицы?» → Оборот: «α = N / M, рехеширование при α > 0.75».',
+            plan: 'План на сегодня (45 мин): 15 мин конспект по амортизированной сложности + 15 мин тест из 10 вопросов + 15 мин повтор карточек.'
+          }
+        },
+        {
+          subject: 'Молекулярная биология',
+          examDate: '30 ноября • Осталось 14 дней',
+          topics: [
+            { title: 'Полуконсервативный механизм репликации ДНК', done: true },
+            { title: 'Ферменты реплисомы: хеликаза и ДНК-полимераза III', done: true },
+            { title: 'Фрагменты Окадзаки и роль ДНК-лигазы', done: true }
+          ],
+          weak: 'Все темы модуля освоены выше 90%! Ошибочная тетрадь пуста.',
+          results: ['Репликация ДНК (Тест): 10/10 (100%)', 'Ферменты реплисомы: 9/10 (90%)'],
+          previews: {
+            quiz: 'Тест (10 вопросов): «В каком направлении ДНК-полимераза III синтезирует новую цепь?» → Ответ по лекции: Строго от 5\'-конца к 3\'-концу.',
+            cards: 'Карточка #1: «Какой фермент сшивает фрагменты Окадзаки?» → Оборот: «ДНК-лигаза».',
+            plan: 'План на сегодня (30 мин): Интервальное повторение 15 карточек со статусом «Знаю» перед коллоквиумом.'
+          }
+        },
+        {
+          subject: 'Макроэкономика',
+          examDate: '5 декабря • Осталось 19 дней',
+          topics: [
+            { title: 'Индекс потребительских цен (CPI) и формула расчёта', done: true },
+            { title: 'Инфляция спроса и инфляция издержек (стагфляция)', done: false },
+            { title: 'Краткосрочная и долгосрочная кривая Филлипса (NAIRU)', done: false }
+          ],
+          weak: 'Слабая тема: «Долгосрочная кривая Филлипса (NAIRU)» — требует повторения.',
+          results: ['Инфляция и ИПЦ: 7/10 (70%)', 'Монетарная политика ЦБ: 8/10 (80%)'],
+          previews: {
+            quiz: 'Тест (10 вопросов): «Какой вид имеет кривая Филлипса в долгосрочном периоде?» → Ответ по лекции: Вертикальная прямая на уровне NAIRU.',
+            cards: 'Карточка #1: «Формула ИПЦ (CPI)?» → Оборот: «(Стоимость корзины в текущем году / Стоимость в базовом году) × 100%».',
+            plan: 'План на сегодня (45 мин): Усиленный разбор слабой темы «Кривая Филлипса» + закрытие 2 вопросов из Ошибочной тетради.'
+          }
+        }
+      ],
+      en: [
+        {
+          subject: 'Algorithms & Data Structures',
+          examDate: 'Nov 23 • 7 days left',
+          topics: [
+            { title: 'Hash Tables & Hash Functions', done: true },
+            { title: 'Separate Chaining vs. Open Addressing', done: true },
+            { title: 'Load Factor α = N / M & Rehashing', done: true },
+            { title: 'Amortized O(1) vs. Worst-Case O(N)', done: false }
+          ],
+          weak: 'Weak Topic: “Amortized O(1) vs. Worst-Case O(N)” — 1 item in Mistake Notebook.',
+          results: ['Hash Tables (Exam Mode): 9/10 (90%)', 'Search Trees (Practice): 8/10 (80%)'],
+          previews: {
+            quiz: 'Quiz (10 questions): “What is the worst-case lookup time in Separate Chaining when all N keys collide?” → Lecture Answer: O(N).',
+            cards: 'Flashcard #1: “Formula for Load Factor (α)?” → Back: “α = N / M, rehash when α > 0.75”.',
+            plan: 'Today’s Plan (45 min): 15m summary on amortized complexity + 10-question quiz + 15m spaced repetition cards.'
+          }
+        },
+        {
+          subject: 'Molecular Biology',
+          examDate: 'Nov 30 • 14 days left',
+          topics: [
+            { title: 'Semi-conservative DNA Replication', done: true },
+            { title: 'Replisome Enzymes: Helicase & DNA Pol III', done: true },
+            { title: 'Okazaki Fragments & DNA Ligase', done: true }
+          ],
+          weak: 'All module topics mastered above 90%! Mistake Notebook is clear.',
+          results: ['DNA Replication Quiz: 10/10 (100%)', 'Replisome Enzymes: 9/10 (90%)'],
+          previews: {
+            quiz: 'Quiz (10 questions): “In which direction does DNA Polymerase III synthesize a new strand?” → Lecture Answer: Strictly 5\' to 3\'.',
+            cards: 'Flashcard #1: “Which enzyme joins Okazaki fragments?” → Back: “DNA Ligase”.',
+            plan: 'Today’s Plan (30 min): Quick interval review of 15 mastered flashcards.'
+          }
+        },
+        {
+          subject: 'Macroeconomics',
+          examDate: 'Dec 5 • 19 days left',
+          topics: [
+            { title: 'Consumer Price Index (CPI) Formula', done: true },
+            { title: 'Demand-Pull vs. Cost-Push Inflation', done: false },
+            { title: 'Short-Run vs. Long-Run Phillips Curve (NAIRU)', done: false }
+          ],
+          weak: 'Weak Topic: “Long-Run Phillips Curve (NAIRU)” — needs review.',
+          results: ['Inflation & CPI: 7/10 (70%)', 'Monetary Policy: 8/10 (80%)'],
+          previews: {
+            quiz: 'Quiz (10 questions): “What is the shape of the long-run Phillips Curve?” → Lecture Answer: Vertical line at the NAIRU level.',
+            cards: 'Flashcard #1: “CPI Formula?” → Back: “(Current Basket Cost / Base Year Cost) × 100%”.',
+            plan: 'Today’s Plan (45 min): Deep-dive into weak topic “Phillips Curve” + resolve 2 Mistake Notebook items.'
+          }
+        }
+      ]
+    };
+
+    /* ------------------------------------------------------------------------
+       2. STATE VARIABLES
+       ------------------------------------------------------------------------ */
+    let currentLang = localStorage.getItem('studypilot_lang') || 'ru';
+    let currentThemeMode = localStorage.getItem('studypilot_theme') || 'light';
+    let heroDemoStage = 0;
+    let heroDemoTimer = null;
+    let currentCabinetSubj = 0;
+    let currentCabinetAction = 'quiz';
+    let currentAuthMode = 'login';
+
+    /* ------------------------------------------------------------------------
+       3. THEME MANAGEMENT (LIGHT / DARK / SYSTEM)
+       ------------------------------------------------------------------------ */
+    function resolveEffectiveTheme(mode) {
+      if (mode === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return mode;
+    }
+
+    function setThemeMode(mode) {
+      currentThemeMode = mode;
+      localStorage.setItem('studypilot_theme', mode);
+      const effective = resolveEffectiveTheme(mode);
+      document.documentElement.setAttribute('data-theme', effective);
+
+      ['light', 'dark', 'system'].forEach((m) => {
+        const btn = document.getElementById('theme-' + m);
+        if (btn) btn.classList.toggle('active', m === mode);
+      });
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (currentThemeMode === 'system') {
+        setThemeMode('system');
+      }
+    });
+
+    /* ------------------------------------------------------------------------
+       4. LANGUAGE MANAGEMENT (RU / EN)
+       ------------------------------------------------------------------------ */
+    function setLanguage(lang) {
+      currentLang = lang === 'en' ? 'en' : 'ru';
+      localStorage.setItem('studypilot_lang', currentLang);
+      document.documentElement.lang = currentLang;
+
+      document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
+      document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+
+      const dict = I18N[currentLang];
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.textContent = dict[key];
+        }
+      });
+
+      renderAnimatedHeroTitle();
+      renderHeroDemoStage();
+      renderCabinet();
+      renderFaq();
+      updateAuthModalLabels();
+      refreshUserNavbarState();
+    }
+
+    function renderAnimatedHeroTitle() {
+      const container = document.getElementById('hero-animated-title');
+      if (!container) return;
+      const words = I18N[currentLang].hero_title_words;
+      container.innerHTML = words
+        .map((w, idx) => {
+          const isAccent = idx >= words.length - 2;
+          return `<span class="word-reveal ${isAccent ? 'gradient-word' : ''}" style="animation-delay:${idx * 0.11}s">${w}</span>`;
+        })
+        .join(' ');
+    }
+
+    /* ------------------------------------------------------------------------
+       5. HERO INTERACTIVE DEMO PIPELINE
+       ------------------------------------------------------------------------ */
+    function renderHeroDemoStage() {
+      const panel = document.getElementById('hero-demo-panel');
+      if (!panel) return;
+      const stages = HERO_DEMO_STAGES[currentLang];
+      const st = stages[heroDemoStage];
+
+      for (let i = 0; i < 4; i++) {
+        const tab = document.getElementById('demo-tab-' + i);
+        if (tab) tab.classList.toggle('active', i === heroDemoStage);
+      }
+
+      panel.innerHTML = `
+        <div>
+          <div class="stage-badge">
+            <span style="width:7px;height:7px;border-radius:50%;background:#22D3EE;display:inline-block;"></span>
+            <span>${st.badge}</span>
+          </div>
+          <div class="stage-title">${st.title}</div>
+        </div>
+        <div class="stage-body">
+          ${st.items.map((item) => `<div class="stage-list-item">${item}</div>`).join('')}
+        </div>
+        <div class="stage-footer">
+          <span>${st.footer}</span>
+          <span style="color:#A78BFA;font-weight:700;">StudyPilot AI</span>
+        </div>
+      `;
+    }
+
+    function selectHeroDemoStage(index) {
+      heroDemoStage = index;
+      renderHeroDemoStage();
+      restartHeroDemoCycle();
+    }
+
+    function restartHeroDemoCycle() {
+      if (heroDemoTimer) clearInterval(heroDemoTimer);
+      heroDemoTimer = setInterval(() => {
+        heroDemoStage = (heroDemoStage + 1) % 4;
+        renderHeroDemoStage();
+      }, 4800);
+    }
+
+    /* ------------------------------------------------------------------------
+       6. INTERACTIVE CABINET MOCKUP
+       ------------------------------------------------------------------------ */
+    function selectCabinetSubject(idx) {
+      currentCabinetSubj = idx;
+      [0, 1, 2].forEach((i) => {
+        const b = document.getElementById('subj-btn-' + i);
+        if (b) b.classList.toggle('active', i === idx);
+      });
+      renderCabinet();
+    }
+
+    function setCabinetAction(act) {
+      currentCabinetAction = act;
+      ['quiz', 'cards', 'plan'].forEach((k) => {
+        const b = document.getElementById('cab-act-' + k);
+        if (b) b.classList.toggle('active', k === act);
+      });
+      renderCabinet();
+    }
+
+    function toggleCabinetTopic(topicIdx) {
+      const list = CABINET_DATA[currentLang][currentCabinetSubj].topics;
+      const mirrorLang = currentLang === 'ru' ? 'en' : 'ru';
+      list[topicIdx].done = !list[topicIdx].done;
+      if (CABINET_DATA[mirrorLang][currentCabinetSubj].topics[topicIdx]) {
+        CABINET_DATA[mirrorLang][currentCabinetSubj].topics[topicIdx].done = list[topicIdx].done;
+      }
+      renderCabinet();
+    }
+
+    function renderCabinet() {
+      const data = CABINET_DATA[currentLang][currentCabinetSubj];
+      if (!data) return;
+
+      const doneCount = data.topics.filter((t) => t.done).length;
+      const pct = Math.round((doneCount / data.topics.length) * 100);
+
+      document.getElementById('cab-exam-subject').textContent = data.subject;
+      document.getElementById('cab-exam-date').textContent = data.examDate;
+      document.getElementById('cab-progress-pct').textContent =
+        currentLang === 'ru' ? `${pct}% изучено` : `${pct}% mastered`;
+      document.getElementById('cab-progress-bar').style.width = pct + '%';
+      document.getElementById('cab-exam-badge').textContent =
+        currentLang === 'ru' ? 'Экзамен через 7 дней • Интенсив' : 'Exam in 7 Days • Intensive Mode';
+
+      const topicsEl = document.getElementById('cab-topics-list');
+      topicsEl.innerHTML = data.topics
+        .map(
+          (t, i) => `
+          <div class="topic-row" onclick="toggleCabinetTopic(${i})">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <span style="width:20px;height:20px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;flex-shrink:0;background:${
+                t.done ? 'var(--accent-emerald)' : 'var(--code-bg)'
+              };color:${t.done ? '#FFFFFF' : 'var(--text-muted)'};">
+                ${t.done ? '✓' : ''}
+              </span>
+              <span style="font-weight:600;${t.done ? 'text-decoration:line-through;opacity:0.72;' : ''}">${t.title}</span>
+            </div>
+            <span class="tag-chip" style="background:${
+              t.done ? 'rgba(16,185,129,0.14)' : 'rgba(99,102,241,0.12)'
+            };color:${t.done ? 'var(--accent-emerald)' : 'var(--accent-primary)'};">
+              ${t.done ? (currentLang === 'ru' ? 'Изучена' : 'Learned') : currentLang === 'ru' ? 'В работе' : 'Active'}
+            </span>
+          </div>
+        `
+        )
+        .join('');
+
+      document.getElementById('cab-action-preview').textContent =
+        data.previews[currentCabinetAction];
+      document.getElementById('cab-weak-box').textContent = data.weak;
+      document.getElementById('cab-results-list').innerHTML = data.results
+        .map(
+          (r) =>
+            `<div style="padding:10px 12px;border-radius:11px;background:var(--bg-card-alt);border:1px solid var(--border-subtle);font-weight:600;">${r}</div>`
+        )
+        .join('');
+    }
+
+    /* ------------------------------------------------------------------------
+       7. FAQ ACCORDION
+       ------------------------------------------------------------------------ */
+    function renderFaq() {
+      const container = document.getElementById('faq-container');
+      if (!container) return;
+      const items = FAQ_DATA[currentLang];
+      container.innerHTML = items
+        .map(
+          (item, i) => `
+          <div class="faq-item ${i === 0 ? 'open' : ''}" id="faq-item-${i}">
+            <button type="button" class="faq-trigger" onclick="toggleFaq(${i})">
+              <span>${item.q}</span>
+              <span class="faq-chevron">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+              </span>
+            </button>
+            <div class="faq-answer" style="max-height:${i === 0 ? '240px' : '0px'};" id="faq-ans-${i}">
+              <div class="faq-answer-inner">${item.a}</div>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    function toggleFaq(index) {
+      const item = document.getElementById('faq-item-' + index);
+      const ans = document.getElementById('faq-ans-' + index);
+      if (!item || !ans) return;
+      const isOpen = item.classList.contains('open');
+      item.classList.toggle('open', !isOpen);
+      ans.style.maxHeight = !isOpen ? ans.scrollHeight + 30 + 'px' : '0px';
+    }
+
+    /* ------------------------------------------------------------------------
+       8. AUTHENTICATION & SESSION LOGIC (LOCALSTORAGE)
+       ------------------------------------------------------------------------ */
+    function openAuthModal(mode) {
+      document.getElementById('auth-modal').classList.add('open');
+      switchAuthMode(mode || 'login');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.remove('open');
+    }
+
+    function switchAuthMode(mode) {
+      currentAuthMode = mode;
+      const statusBox = document.getElementById('auth-status-box');
+      statusBox.className = 'auth-status';
+      statusBox.textContent = '';
+      updateAuthModalLabels();
+    }
+
+    function updateAuthModalLabels() {
+      const dict = I18N[currentLang];
+      const nameWrap = document.getElementById('field-name-wrap');
+      const pwWrap = document.getElementById('field-password-wrap');
+      const tabsBar = document.getElementById('auth-tabs-bar');
+      const submitText = document.getElementById('auth-submit-text');
+
+      document.getElementById('auth-modal-title').textContent = dict.auth_welcome;
+      document.getElementById('tab-login-btn').classList.toggle('active', currentAuthMode === 'login');
+      document.getElementById('tab-register-btn').classList.toggle('active', currentAuthMode === 'register');
+
+      if (currentAuthMode === 'register') {
+        tabsBar.style.display = 'grid';
+        nameWrap.style.display = 'block';
+        pwWrap.style.display = 'block';
+        submitText.textContent = dict.auth_btn_register;
+      } else if (currentAuthMode === 'forgot') {
+        tabsBar.style.display = 'grid';
+        nameWrap.style.display = 'none';
+        pwWrap.style.display = 'none';
+        submitText.textContent = dict.auth_btn_forgot;
+      } else {
+        tabsBar.style.display = 'grid';
+        nameWrap.style.display = 'none';
+        pwWrap.style.display = 'block';
+        submitText.textContent = dict.auth_btn_login;
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pw = document.getElementById('auth-password');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const dict = I18N[currentLang];
+      const nameVal = document.getElementById('auth-name').value.trim();
+      const emailVal = document.getElementById('auth-email').value.trim();
+      const pwVal = document.getElementById('auth-password').value;
+      const statusBox = document.getElementById('auth-status-box');
+      const submitText = document.getElementById('auth-submit-text');
+
+      if (currentAuthMode === 'forgot') {
+        if (emailVal.length < 3) {
+          statusBox.className = 'auth-status error';
+          statusBox.textContent = dict.auth_err_email;
+          return;
+        }
+        statusBox.className = 'auth-status success';
+        statusBox.textContent = dict.auth_msg_reset;
+        return;
+      }
+
+      if (!emailVal || !pwVal || (currentAuthMode === 'register' && !nameVal)) {
+        statusBox.className = 'auth-status error';
+        statusBox.textContent = dict.auth_err_empty;
+        return;
+      }
+
+      if (emailVal.length < 3) {
+        statusBox.className = 'auth-status error';
+        statusBox.textContent = dict.auth_err_email;
+        return;
+      }
+
+      if (pwVal.length < 6) {
+        statusBox.className = 'auth-status error';
+        statusBox.textContent = dict.auth_err_pw;
+        return;
+      }
+
+      // Loading state
+      submitText.textContent = dict.auth_msg_loading;
+      setTimeout(() => {
+        const displayName =
+          currentAuthMode === 'register'
+            ? nameVal
+            : emailVal.split('@')[0];
+
+        const sessionUser = {
+          name: displayName,
+          email: emailVal,
+          loggedInAt: new Date().toISOString()
+        };
+        localStorage.setItem('studypilot_session', JSON.stringify(sessionUser));
+
+        statusBox.className = 'auth-status success';
+        statusBox.textContent =
+          currentAuthMode === 'register'
+            ? dict.auth_msg_success_reg
+            : dict.auth_msg_success_login;
+
+        refreshUserNavbarState();
+        updateAuthModalLabels();
+
+        setTimeout(() => {
+          closeAuthModal();
+        }, 900);
+      }, 450);
+    }
+
+    function refreshUserNavbarState() {
+      const raw = localStorage.getItem('studypilot_session');
+      const guestBlock = document.getElementById('nav-auth-guest');
+      const userBlock = document.getElementById('nav-auth-user');
+
+      if (raw) {
+        try {
+          const user = JSON.parse(raw);
+          guestBlock.style.display = 'none';
+          userBlock.style.display = 'flex';
+          document.getElementById('user-display-name').textContent =
+            user.name || I18N[currentLang].nav_cabinet;
+          document.getElementById('user-avatar-initials').textContent = (
+            user.name || 'SP'
+          )
+            .slice(0, 2)
+            .toUpperCase();
+          return;
+        } catch (e) {}
+      }
+      guestBlock.style.display = 'flex';
+      userBlock.style.display = 'none';
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('studypilot_session');
+      refreshUserNavbarState();
+    }
+
+    /* ------------------------------------------------------------------------
+       9. MOBILE MENU, NAVBAR SCROLL & INTERSECTION OBSERVER
+       ------------------------------------------------------------------------ */
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('open');
+    }
+
+    function closeMobileMenu() {
+      document.getElementById('mobile-menu').classList.remove('open');
+    }
+
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      if (window.scrollY > 24) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    function animateCounters() {
+      const counters = document.querySelectorAll('.counter-val');
+      counters.forEach((el) => {
+        const target = parseInt(el.getAttribute('data-target') || '0', 10);
+        const duration = 1500;
+        const startTime = performance.now();
+
+        function step(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(eased * target);
+          el.textContent = current.toLocaleString(currentLang === 'ru' ? 'ru-RU' : 'en-US');
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          }
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    /* ------------------------------------------------------------------------
+       10. INITIALIZATION
+       ------------------------------------------------------------------------ */
+    document.addEventListener('DOMContentLoaded', () => {
+      setThemeMode(currentThemeMode);
+      setLanguage(currentLang);
+      restartHeroDemoCycle();
+      animateCounters();
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        },
+        { threshold: 0.12 }
+      );
+
+      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    });
+  </script>
+</body>
+</html>

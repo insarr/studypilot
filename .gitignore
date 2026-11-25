@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment Variables & Secrets (NEVER commit real API keys!)
+.env
+.env.*
+!.env.example
+**/data/.jwt-secret
+
+# Build artifacts & archives
+dist/
+**/dist/
+*.zip
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.vercel/
